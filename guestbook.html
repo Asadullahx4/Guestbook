@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asadullah's Guestbook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #030712;
+      --neon-green: #00ff88;
+      --neon-cyan: #00e5ff;
+      --neon-pink: #ff2d78;
+      --neon-yellow: #f9e900;
+      --dim: #3a4a5a;
+      --text: #c8d8e8;
+      --card-bg: rgba(10,20,35,0.85);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .page {
+      position: relative;
+      z-index: 10;
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid var(--neon-green);
+      box-shadow: 0 0 20px rgba(0,255,136,0.4), 0 0 60px rgba(0,255,136,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      background: rgba(0,255,136,0.06);
+      text-shadow: 0 0 16px var(--neon-green);
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 14px;
+      height: 14px;
+      background: var(--neon-green);
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 8px var(--neon-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 900;
+      color: var(--neon-green);
+      text-shadow: 0 0 16px rgba(0,255,136,0.6);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .tagline {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--neon-cyan);
+      opacity: 0.75;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .visitor-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 16px;
+      border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 2px;
+      font-size: 0.68rem;
+      color: var(--neon-cyan);
+      letter-spacing: 0.15em;
+      background: rgba(0,229,255,0.04);
+    }
+
+    .visitor-count span { color: var(--neon-yellow); font-family: 'Orbitron', sans-serif; }
+
+    /* Form */
+    .form-section {
+      background: var(--card-bg);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 4px;
+      padding: 28px;
+      margin-bottom: 40px;
+      box-shadow: 0 0 30px rgba(0,255,136,0.05);
+      animation: fadeUp 0.6s 0.2s ease both;
+      position: relative;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .corner { position: absolute; width: 14px; height: 14px; border-color: var(--neon-green); border-style: solid; opacity: 0.6; }
+    .corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+    .corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+    .corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+    .corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+    .form-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--neon-green);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(0,255,136,0.3), transparent);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    input, textarea {
+      background: rgba(0,255,136,0.03);
+      border: 1px solid rgba(0,255,136,0.18);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: none;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 12px rgba(0,255,136,0.2);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--dim); }
+
+    textarea { min-height: 90px; }
+
+    /* Emoji picker */
+    .emoji-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .emoji-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      text-transform: uppercase;
+      width: 100%;
+      margin-bottom: 2px;
+    }
+
+    .emoji-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .emoji-btn:hover { background: rgba(0,255,136,0.1); border-color: var(--neon-green); transform: scale(1.15); }
+    .emoji-btn.selected { background: rgba(0,255,136,0.15); border-color: var(--neon-green); box-shadow: 0 0 8px rgba(0,255,136,0.3); }
+
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      border: 1.5px solid var(--neon-green);
+      color: var(--neon-green);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      box-shadow: 0 0 16px rgba(0,255,136,0.15), inset 0 0 16px rgba(0,255,136,0.03);
+      transition: all 0.2s;
+      margin-top: 6px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: rgba(0,255,136,0.1);
+      box-shadow: 0 0 30px rgba(0,255,136,0.4);
+    }
+
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Success toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(0,255,136,0.12);
+      border: 1px solid var(--neon-green);
+      color: var(--neon-green);
+      padding: 12px 28px;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      border-radius: 2px;
+      box-shadow: 0 0 24px rgba(0,255,136,0.3);
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+      z-index: 200;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Messages section */
+    .messages-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .messages-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .msg-count {
+      font-size: 0.65rem;
+      padding: 2px 10px;
+      background: rgba(0,229,255,0.08);
+      border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 20px;
+      color: var(--neon-cyan);
+    }
+
+    .messages-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(0,229,255,0.25), transparent);
+    }
+
+    .messages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .msg-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-left: 2px solid var(--neon-cyan);
+      border-radius: 2px;
+      padding: 16px 20px;
+      animation: fadeUp 0.4s ease both;
+      transition: border-left-color 0.2s, box-shadow 0.2s;
+    }
+
+    .msg-card:hover {
+      border-left-color: var(--neon-green);
+      box-shadow: 0 0 16px rgba(0,255,136,0.06);
+    }
+
+    .msg-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .msg-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--neon-green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-emoji { font-size: 1rem; }
+
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .msg-github {
+      font-size: 0.62rem;
+      color: var(--neon-cyan);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .msg-github:hover { opacity: 1; text-decoration: underline; }
+
+    .msg-time {
+      font-size: 0.6rem;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+    }
+
+    .msg-text {
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: var(--text);
+      opacity: 0.88;
+    }
+
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      border: 1px dashed rgba(255,255,255,0.07);
+      border-radius: 2px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 60px;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+    }
+
+    .footer a { color: var(--neon-cyan); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="avatar-wrap">
+      <div class="avatar">A</div>
+      <div class="online-dot"></div>
+    </div>
+    <h1>ASADULLAH'S GUESTBOOK</h1>
+    <p class="tagline">You found my corner of the internet — leave a trace</p>
+    <div class="visitor-count">
+      👁 Visitors: <span id="visitorCount">...</span>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-section">
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+
+    <div class="form-title">// Drop a message</div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>Your Name *</label>
+        <input type="text" id="inputName" placeholder="e.g. John Doe" maxlength="40"/>
+      </div>
+      <div class="field">
+        <label>GitHub Username</label>
+        <input type="text" id="inputGithub" placeholder="e.g. octocat" maxlength="40"/>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:14px">
+      <label>Your Message *</label>
+      <textarea id="inputMsg" placeholder="Say hi, drop feedback, or just leave your mark..." maxlength="300"></textarea>
+    </div>
+
+    <div class="emoji-row">
+      <div class="emoji-label">Pick a vibe</div>
+      <button class="emoji-btn" data-emoji="👋">👋</button>
+      <button class="emoji-btn" data-emoji="🔥">🔥</button>
+      <button class="emoji-btn" data-emoji="🚀">🚀</button>
+      <button class="emoji-btn" data-emoji="💻">💻</button>
+      <button class="emoji-btn" data-emoji="⚡">⚡</button>
+      <button class="emoji-btn" data-emoji="🎮">🎮</button>
+      <button class="emoji-btn" data-emoji="🐍">🐍</button>
+      <button class="emoji-btn" data-emoji="💯">💯</button>
+      <button class="emoji-btn" data-emoji="❤️">❤️</button>
+      <button class="emoji-btn" data-emoji="🤝">🤝</button>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitMessage()">
+      ▶ &nbsp; SIGN THE GUESTBOOK
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-header">
+    <div class="messages-title">// Messages</div>
+    <div class="msg-count" id="msgCount">0</div>
+  </div>
+
+  <div class="messages-list" id="messagesList">
+    <div class="loading">LOADING MESSAGES...</div>
+  </div>
+
+  <div class="footer">
+    <p>made by <a href="https://github.com/Asadullahx4" target="_blank">@Asadullahx4</a> &nbsp;·&nbsp; powered by GitHub Pages</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ &nbsp; MESSAGE SENT — WELCOME TO THE CREW!</div>
+
+<script>
+  // ─── STORAGE: uses JSONBin.io (free, no auth needed for reading) ───────────
+  // You need to create a FREE account at jsonbin.io and paste your details below.
+  // Step-by-step setup instructions are at the bottom of this script.
+
+  const BIN_ID  = '69b9e764aa77b81da9f3d1a7';   // ← replace after setup
+  const API_KEY = '$2a$10$vvDCgzkOPe3xIjWFf7OLOOipzBHsBJVu7KgvLBP2Kpz4xRMmL8rK6';  // ← replace after setup
+  const BASE    = 'https://api.jsonbin.io/v3/b';
+
+  let messages = [];
+  let selectedEmoji = '👋';
+  let visitorCount = 0;
+
+  // ── Emoji picker ─────────────────────────────────────────────────────────
+  document.querySelectorAll('.emoji-btn').forEach(btn => {
+    if (btn.dataset.emoji === '👋') btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedEmoji = btn.dataset.emoji;
+    });
+  });
+
+  // ── Load messages ─────────────────────────────────────────────────────────
+  async function loadMessages() {
+    if (BIN_ID === 'YOUR_BIN_ID_HERE') {
+      showSetupInstructions();
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE}/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': API_KEY }
+      });
+      const data = await res.json();
+      messages = data.record.messages || [];
+      visitorCount = (data.record.visitors || 0) + 1;
+      // Update visitor count (fire & forget)
+      saveData({ messages, visitors: visitorCount });
+      renderMessages();
+      document.getElementById('visitorCount').textContent = visitorCount.toLocaleString();
+    } catch (e) {
+      document.getElementById('messagesList').innerHTML =
+        '<div class="empty-state">Could not load messages. Check your JSONBin setup.</div>';
+    }
+  }
+
+  async function saveData(payload) {
+    await fetch(`${BASE}/${BIN_ID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  // ── Render messages ───────────────────────────────────────────────────────
+  function renderMessages() {
+    const list = document.getElementById('messagesList');
+    document.getElementById('msgCount').textContent = messages.length;
+
+    if (messages.length === 0) {
+      list.innerHTML = '<div class="empty-state">NO MESSAGES YET — BE THE FIRST TO SIGN! 👾</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    const colors = ['var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-pink)', 'var(--neon-yellow)'];
+    [...messages].reverse().forEach((m, i) => {
+      const card = document.createElement('div');
+      card.className = 'msg-card';
+      card.style.borderLeftColor = colors[i % colors.length];
+      card.style.animationDelay = `${i * 0.06}s`;
+      const gh = m.github
+        ? `<a href="https://github.com/${m.github}" target="_blank" class="msg-github">@${m.github}</a>`
+        : '';
+      card.innerHTML = `
+        <div class="msg-top">
+          <div class="msg-name">
+            <span class="msg-emoji">${m.emoji || '👋'}</span>
+            ${escHtml(m.name)}
+          </div>
+          <div class="msg-meta">
+            ${gh}
+            <span class="msg-time">${formatTime(m.time)}</span>
+          </div>
+        </div>
+        <div class="msg-text">${escHtml(m.message)}</div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  async function submitMessage() {
+    const name    = document.getElementById('inputName').value.trim();
+    const github  = document.getElementById('inputGithub').value.trim().replace('@','');
+    const message = document.getElementById('inputMsg').value.trim();
+
+    if (!name || !message) {
+      shake(document.getElementById('submitBtn'));
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳  SENDING...';
+
+    const entry = { name, github, message, emoji: selectedEmoji, time: Date.now() };
+    messages.push(entry);
+
+    try {
+      await saveData({ messages, visitors: visitorCount });
+      renderMessages();
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputGithub').value = '';
+      document.getElementById('inputMsg').value = '';
+      showToast();
+    } catch(e) {
+      alert('Could not save message. Check your JSONBin setup.');
+      messages.pop();
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '▶ &nbsp; SIGN THE GUESTBOOK';
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatTime(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  function shake(el) {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = 'shake 0.4s ease';
+    el.style.borderColor = 'var(--neon-pink)';
+    el.style.color = 'var(--neon-pink)';
+    setTimeout(() => {
+      el.style.borderColor = '';
+      el.style.color = '';
+    }, 800);
+  }
+
+  // Shake keyframe (injected)
+  const style = document.createElement('style');
+  style.textContent = `@keyframes shake {
+    0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+  }`;
+  document.head.appendChild(style);
+
+  // ── Setup instructions (shown when keys not set) ──────────────────────────
+  function showSetupInstructions() {
+    document.getElementById('messagesList').innerHTML = `
+      <div style="background:rgba(249,233,0,0.05);border:1px solid rgba(249,233,0,0.3);border-radius:4px;padding:24px;font-size:0.78rem;line-height:2;color:var(--text);">
+        <div style="font-family:'Orbitron',sans-serif;color:var(--neon-yellow);font-size:0.75rem;letter-spacing:0.15em;margin-bottom:12px;">⚠ SETUP REQUIRED</div>
+        <b style="color:var(--neon-yellow)">Quick 3-step setup to enable the guestbook:</b><br><br>
+        <b style="color:var(--neon-cyan)">1.</b> Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--neon-cyan)">jsonbin.io</a> → Sign up free<br>
+        <b style="color:var(--neon-cyan)">2.</b> Click "Create Bin" → paste this JSON → Save:<br>
+        <code style="display:block;background:rgba(0,0,0,0.4);padding:8px 12px;margin:8px 0;border-radius:2px;color:var(--neon-green)">{"messages":[],"visitors":0}</code>
+        <b style="color:var(--neon-cyan)">3.</b> Copy your <b>Bin ID</b> and <b>API Key</b> (from Account → API Keys)<br>
+        → Open <code style="color:var(--neon-green)">guestbook.html</code> and replace:<br>
+        <code style="display:block;background:rgba(0,0,0,0.4);padding:8px 12px;margin:8px 0;border-radius:2px;color:var(--neon-green)">const BIN_ID  = 'YOUR_BIN_ID_HERE';<br>const API_KEY = 'YOUR_API_KEY_HERE';</code>
+        Then re-upload to GitHub Pages. Done! 🚀
+      </div>`;
+    document.getElementById('visitorCount').textContent = '—';
+    document.getElementById('msgCount').textContent = '0';
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadMessages();
+</script>
+</body>
+</html>
